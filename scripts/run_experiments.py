@@ -10,8 +10,8 @@ import yaml
 
 
 def main(logs_dir="./logs", configs_dir="./configs", world_name="indoor", timeout: int = 3600):
-  for num_robots in [2, 3, 4]:
-    for delay_time in [0, 5, 10, 15, 20, 25, 30]:
+  for num_robots in [2, 4]:
+    for delay_time in [0, 5, 10, 15, 20]:
       for i in range(10):
         print("#######################")
         print(f"Starting experiment {i}")
@@ -58,11 +58,11 @@ def start_processes(
     timeout: int = 3600,
 ):
   # Create logs dir from curret time
-  logs_dir = f"{logs_dir}/{time.strftime('%Y-%m-%d_%H-%M-%S')}"
+  namespace = "experiment_" + time.strftime('%Y_%m_%d_%H_%M_%S')
+  logs_dir = os.path.join(logs_dir, namespace)
   os.makedirs(logs_dir, exist_ok=True)
 
   # Start gazebo
-  namespace = "experiment_" + time.strftime('%H_%M_%S')
   start_gazebo = f"ros2 launch vehicle_simulator gazebo.launch.py gui:=false worldName:={world_name}"
   start_vehicle_simulator = f"ros2 launch vehicle_simulator simulation_multi_agent.launch.py namespace:={namespace} agentsConfigFile:={agents_configs_file} worldName:={world_name}"
   start_merger = f"ros2 launch tare_planner planning_interface_merger.launch.py delay_time:={delay_time} num_robots:={num_robots} namespace:={namespace}"
@@ -72,6 +72,7 @@ def start_processes(
   processes.append(subprocess.Popen(shlex.split(start_gazebo)))
   time.sleep(5)
   processes.append(subprocess.Popen(shlex.split(start_vehicle_simulator)))
+  time.sleep(10)
   processes.append(start_and_log_process(start_merger, logs_dir, "planner"))
   processes.extend(start_planner_processes(namespace, logs_dir, get_num_robots(agents_configs_file)))
 
@@ -87,7 +88,7 @@ def start_processes(
 def start_planner_processes(namespace: str, logs_dir: str, num_robots: int):
   processes = []
   for i in range(num_robots):
-    start_robot = f"ros2 launch tare_planner explore.launch.py namespace:={namespace} robotName:=robot_{i} rviz:=true configFile:=default"
+    start_robot = f"ros2 launch tare_planner explore.launch.py namespace:={namespace} robotName:=robot_{i} rviz:=true configFile:=default numRobots:={num_robots}"
     processes.append(start_and_log_process(start_robot, logs_dir, f"robot_{i}"))
   return processes
 
