@@ -10,9 +10,9 @@ import yaml
 
 
 def main(logs_dir="./logs", configs_dir="./configs", world_name="indoor", timeout: int = 3600):
-  for num_robots in [2, 4]:
-    for delay_time in [0, 5, 10, 15, 20]:
-      for i in range(10):
+  for num_robots in [2]:
+    for delay_time in [10]:
+      for i in range(1):
         print("#######################")
         print(f"Starting experiment {i}")
         print("#######################")
